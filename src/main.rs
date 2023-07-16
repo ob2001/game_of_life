@@ -5,6 +5,10 @@ use crossterm::{execute, queue, cursor::{MoveTo, self}, terminal::{Clear, ClearT
 use game_of_life::startup::World;
 
 fn main() {
+    /*
+        TODO: Allow user to input custom world dimensions
+    */
+
     // Generate new GOL world
     let world = World::new(10, 10);
 
@@ -45,4 +49,8 @@ fn main() {
 
     // Make sure to return to original terminal screen
     execute!(stdout(), LeaveAlternateScreen).unwrap();
+}
+
+fn update_gol() {
+    todo!("To implement: Game of Life functionality");
 }
