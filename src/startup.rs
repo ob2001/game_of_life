@@ -1,8 +1,9 @@
 use std::fmt;
 use rand::Rng;
 
+#[derive(Clone)]
 pub struct Cell {
-    alive: bool,
+    pub alive: bool,
 }
 
 impl Cell {
@@ -21,11 +22,18 @@ impl fmt::Display for Cell {
     }
 }
 
+impl PartialEq for Cell {
+    fn eq(&self, other: &Self) -> bool {
+        !(self.alive ^ other.alive)
+    }
+}
+
+#[derive(Clone)]
 pub struct World {
     width: i32,
     height: i32,
     upper_lower: String,
-    world: Vec<Vec<Cell>>,
+    pub world: Vec<Vec<Cell>>,
 }
 
 impl World {
@@ -60,5 +68,11 @@ impl fmt::Display for World {
         }
         out.push_str(&self.upper_lower);
         write!(f, "{}", out)
+    }
+}
+
+impl PartialEq for World {
+    fn eq(&self, other: &Self) -> bool {
+        self.world == other.world
     }
 }
