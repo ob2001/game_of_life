@@ -1,8 +1,8 @@
 use core::time::Duration;
 use std::{io::{Write, stdout}, thread};
-use crossterm::{execute, queue, cursor::{MoveTo, self}, terminal::{Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen}, style::{Print, self}, event::{poll, read, KeyCode, Event}};
+use crossterm::{execute, queue, cursor::{MoveTo, self}, terminal::{Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen, self}, style::{Print, self}, event::{poll, read, KeyCode, Event}};
 
-use game_of_life::startup::World;
+use game_of_life::startup::{World, Cell};
 
 fn main() {
     /*
@@ -27,18 +27,25 @@ fn main() {
             if poll(Duration::from_millis(50)).unwrap() {
                 match read().unwrap() {
                     Event::Key(k) => {
-                        if k.code == KeyCode::Esc {
-                            break;
+                        match k.code {
+                            KeyCode::Esc => break,
+                            _ => continue,
                         }
                     }
                     _ => continue,
                 }
             }
 
-            queue!(stdout, Clear(ClearType::All)).unwrap();
-            queue!(stdout, MoveTo(0, 0)).unwrap();
-            queue!(stdout, Print(&world)).unwrap();
-            stdout.flush().unwrap();
+            let prev_world = world.clone();
+
+            // update_gol(&mut world);
+
+            //if prev_world != world {
+                queue!(stdout, Clear(ClearType::All)).unwrap();
+                queue!(stdout, MoveTo(0, 0)).unwrap();
+                queue!(stdout, Print(&world)).unwrap();
+                stdout.flush().unwrap();
+            //}
 
             // Pause execution so that screen doesn't flash too much
             // (Will be superseded by only updating screen if there
@@ -51,6 +58,14 @@ fn main() {
     execute!(stdout(), LeaveAlternateScreen).unwrap();
 }
 
-fn update_gol() {
-    todo!("To implement: Game of Life functionality");
+fn update_gol(world: &mut World) {
+    for i in 0..world.world.len() {
+        for j in 0..world.world[0].len() {
+            up_life(&mut world.world[i][j], vec![]);
+        }
+    }
+}
+
+fn up_life(cell: &mut Cell, surr: Vec<&mut Cell>) -> Cell {
+    todo!("To implement: ");
 }
