@@ -1,6 +1,4 @@
-use game_of_life::{
-    world::{World, Cell}, 
-    startup::run};
+use game_of_life::startup::run;
 
 fn main() {
     /*
@@ -8,5 +6,5 @@ fn main() {
     */
 
     // Generate and run new GOL world
-    run(World::new_rand(25, 25));
+    run(10, 10);
 }
