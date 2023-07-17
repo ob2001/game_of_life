@@ -1,5 +1,6 @@
 use std::{fmt, cmp::{min, max}};
 use rand::Rng;
+use std::fs;
 
 #[derive(Clone)]
 pub struct Cell {
@@ -28,7 +29,7 @@ impl Cell {
 impl fmt::Display for Cell {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.alive {
-            write!(f, "X")
+            write!(f, "O")
         } else {
             write!(f, " ")
         }
@@ -81,18 +82,22 @@ impl World {
         Ok(World{width: w, height: h, world: world_gen, upper_lower: u_l})
     }
 
-    pub fn from_file() -> World {
+    pub fn from_file(fname: &str) -> Result<World, String> {
         todo!("To implement: import world from .txt file");
+    }
+
+    pub fn to_file(fname: &str) -> Result<(), String> {
+        todo!("To implement: export world to .txt file");
     }
 
     pub fn width(&self) -> i32 {self.width}
     pub fn height(&self) -> i32 {self.height}
 
-    pub fn cell_neighbors_sol(&self, i: i32, j: i32) -> i32 {
+    pub fn cell_neighbors_sol(&self, x: i32, y: i32) -> i32 {
         let mut ans = 0;
-        for i in max(i - 1, 0)..min(i + 1, self.width) {
-            for j in max(j - 1, 0)..min(j + 1, self.height) {
-                if self.world[i as usize][j as usize].alive{
+        for i in max(x - 1, 0)..min(x + 2, self.width) {
+            for j in max(y - 1, 0)..min(y + 2, self.height) {
+                if (i, j) != (x, y) && self.world[i as usize][j as usize].alive{
                     ans += 1;
                 }
             }
@@ -104,7 +109,7 @@ impl World {
         let mut ans = 0;
         for i in max(x - 1, 0)..min(x + 1, self.width) {
             for j in max(y - 1, 0)..min(y + 1, self.height) {
-                if self.world[i as usize][j as usize].alive{
+                if (i, j) != (x, y) && self.world[i as usize][j as usize].alive{
                     ans += 1;
                 }
             }
