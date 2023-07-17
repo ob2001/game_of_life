@@ -15,50 +15,67 @@ impl Cgol {
     }
 
     pub fn run(&mut self) { 
-    // Bind io::stdout() output to variable for convenience
-    let mut stdout = stdout();
-        
-    // Enter a new terminal screen, clear and hide cursor,
-    // and print initial world state
-    execute!(stdout, 
-        terminal::EnterAlternateScreen, 
-        terminal::Clear(ClearType::All), 
-        cursor::Hide, 
-        cursor::MoveTo(0, 0), 
-        Print(&world), 
-        Print("\nPress Esc to exit program"))
-        .unwrap();
-
-    thread::sleep(frame_delay);
-
-    loop {
-        match get_key() {
-            // Allow program to quit if user presses ESC key
-            KeyCode::Esc => break,
-            _ => (),
+        // Bind io::stdout() output to variable for convenience
+        let mut stdout = stdout();
+            
+        // Enter a new terminal screen, clear and hide cursor,
+        // and print initial world state
+        execute!(stdout, 
+            terminal::EnterAlternateScreen, 
+            terminal::Clear(ClearType::All), 
+            cursor::Hide, 
+            cursor::MoveTo(0, 0), 
+            Print(&self.world), 
+            Print("\nPress Esc to exit program"))
+            .unwrap();
+    
+        thread::sleep(self.frame_delay);
+    
+        loop {
+            match get_key() {
+                // Allow program to quit if user presses ESC key
+                KeyCode::Esc => break,
+                KeyCode::Char(' ') => (),
+                _ => (),
+            }
+    
+            let prev_world = self.world.clone();
+    
+            self.world = self.update();
+    
+            if prev_world != self.world {
+                execute!(stdout, cursor::MoveTo(0, 0), Print(&self.world)).unwrap();
+            } else {
+                execute!(stdout, 
+                    cursor::MoveTo(0, (self.world.height() + 2) as u16), 
+                    Clear(ClearType::CurrentLine), 
+                    Print("Press any key to exit program..."))
+                    .unwrap();
+                read().unwrap();
+                break;
+            }
+    
+            thread::sleep(self.frame_delay);
         }
+    
+        // For debugging
+        // thread::sleep(Duration::from_secs(2));
 
-        let prev_world = world.clone();
-
-        update_gol(&mut world);
-
-        if prev_world != world {
-            execute!(stdout, cursor::MoveTo(0, 0), Print(&world)).unwrap();
-        } else {
-            execute!(stdout, 
-                cursor::MoveTo(0, (world.height() + 2) as u16), 
-                Clear(ClearType::CurrentLine), 
-                Print("Press any key to exit program..."))
-                .unwrap();
-            read().unwrap();
-            break;
-        }
-
-        thread::sleep(frame_delay);
+        // Make sure to return to original terminal screen
+        execute!(stdout, terminal::LeaveAlternateScreen).unwrap();
     }
 
-    // Make sure to return to original terminal screen
-    execute!(stdout, terminal::LeaveAlternateScreen).unwrap();
+    fn update(&self) -> World {
+        let mut temp = self.world.clone();
+        
+        for i in 0..temp.height() {
+            for j in 0..temp.width() {
+                temp.world[i as usize][j as usize].up_alive(self.world.cell_neighbors_sol(i, j));
+            }
+        }
+
+        temp
+    }
 }
 
 fn get_key() -> KeyCode {
@@ -71,23 +88,5 @@ fn get_key() -> KeyCode {
         }
     } else {
         KeyCode::Null
-    }
-}
-
-fn update_gol(world: &mut World) {
-    for i in 0..world.height() as usize {
-        for j in 0..world.width() as usize {
-            let neighbors = world.cell_neighbors_sol(i as i32, j as i32);
-            world.world[i][j].up_alive(neighbors);
-        }
-    }
-
-    for i in 0..world.height() as usize {
-        for j in 0..world.width() as usize {
-            if world.world[i][j].changing {
-                world.world[i][j].alive = !world.world[i][j].alive;
-            }
-            world.world[i][j].changing = false;
-        }
     }
 }
