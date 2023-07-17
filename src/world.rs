@@ -1,38 +1,40 @@
 use std::{fmt, cmp::{min, max}};
 use rand::Rng;
-use std::fs;
+// use std::fs;
 
 #[derive(Clone)]
 pub struct Cell {
     pub alive: bool,
     pub changing: bool,
-    pub x: i32,
-    pub y: i32,
 }
 
 impl Cell {
-    fn new(alive: bool, x: i32, y: i32) -> Cell {
-        Cell{alive, changing: false, x, y}
+    fn new(alive: bool) -> Cell {
+        Cell{alive, changing: false}
     }
 
     pub fn up_alive(&mut self, neighbors: i32) {
-        if self.alive && (neighbors < 2 || neighbors > 3) {
-            self.changing = true;
-        } else if self.alive && (neighbors == 2 || neighbors == 3) {
+        let surv = [2, 3];
+        let born = [3];
+
+        if self.alive && (surv.contains(&neighbors)) {
             self.changing = false;
-        } else if !self.alive && neighbors == 3 {
+        } else if self.alive {
             self.changing = true;
+        }
+        
+        if !self.alive && (born.contains(&neighbors)) {
+            self.changing = true;
+        } else if !self.alive {
+            self.changing = false;
         }
     }
 }
 
 impl fmt::Display for Cell {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.alive {
-            write!(f, "O")
-        } else {
-            write!(f, " ")
-        }
+        if self.alive { write!(f, "O") } 
+        else { write!(f, " ") }
     }
 }
 
@@ -56,7 +58,7 @@ impl World {
             return Err(String::from("Invalid world dimensions"));
         }
 
-        let world_gen = (0..h).map(|x| (0..w).map(|y| Cell::new(false, x, y)).collect()).collect();
+        let world_gen = (0..w).map(|_| (0..h).map(|_| Cell::new(false)).collect()).collect();
         let u_l = (0..w + 2).map(|_| "-").collect::<String>();
         
         Ok(World{width: w, height: h, world: world_gen, upper_lower: u_l})
@@ -71,10 +73,10 @@ impl World {
         let mut rng = rand::thread_rng();
         let u_l = (0..w + 2).map(|_| "-").collect::<String>();
         
-        for i in 0..w {
+        for _ in 0..h {
             let mut row_gen = Vec::new();
-            for j in 0..h {
-                row_gen.push(Cell::new(rng.gen_range(0..100) < 15, i, j));
+            for _ in 0..w {
+                row_gen.push(Cell::new(rng.gen_range(0..100) < 15));
             }
             world_gen.push(row_gen);
         }
@@ -82,11 +84,11 @@ impl World {
         Ok(World{width: w, height: h, world: world_gen, upper_lower: u_l})
     }
 
-    pub fn from_file(fname: &str) -> Result<World, String> {
+    pub fn from_file(_fname: &str) -> Result<World, String> {
         todo!("To implement: import world from .txt file");
     }
 
-    pub fn to_file(fname: &str) -> Result<(), String> {
+    pub fn to_file(_fname: &str) -> Result<(), String> {
         todo!("To implement: export world to .txt file");
     }
 
@@ -95,8 +97,8 @@ impl World {
 
     pub fn cell_neighbors_sol(&self, x: i32, y: i32) -> i32 {
         let mut ans = 0;
-        for i in max(x - 1, 0)..min(x + 2, self.width) {
-            for j in max(y - 1, 0)..min(y + 2, self.height) {
+        for i in max(x - 1, 0)..min(x + 2, self.height) {
+            for j in max(y - 1, 0)..min(y + 2, self.width) {
                 if (i, j) != (x, y) && self.world[i as usize][j as usize].alive{
                     ans += 1;
                 }
@@ -105,17 +107,20 @@ impl World {
         ans
     }
 
-    pub fn cell_neighbors_per(&self, x: i32, y: i32) -> i32 {
-        let mut ans = 0;
-        for i in max(x - 1, 0)..min(x + 1, self.width) {
-            for j in max(y - 1, 0)..min(y + 1, self.height) {
-                if (i, j) != (x, y) && self.world[i as usize][j as usize].alive{
-                    ans += 1;
-                }
-            }
-        }
-        ans
-    }
+    /*
+        TODO: Come back to implement periodic boundaries
+     */
+    // pub fn cell_neighbors_per(&self, x: i32, y: i32) -> i32 {
+    //     let mut ans = 0;
+    //     for i in max(x - 1, 0)..min(x + 1, self.height) {
+    //         for j in max(y - 1, 0)..min(y + 1, self.width) {
+    //             if (i, j) != (x, y) && self.world[i as usize][j as usize].alive{
+    //                 ans += 1;
+    //             }
+    //         }
+    //     }
+    //     ans
+    // }
 }
 
 impl fmt::Display for World {

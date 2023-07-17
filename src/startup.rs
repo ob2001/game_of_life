@@ -1,5 +1,5 @@
-use std::{io::{stdout, Write}, time::Duration};
-use crossterm::{execute, queue, terminal::{self, ClearType, Clear}, cursor, style::Print, event::{KeyCode, poll, read, self}};
+use std::{io::stdout, time::Duration};
+use crossterm::{execute, terminal::{self, ClearType, Clear}, cursor, style::Print, event::{KeyCode, poll, read, self}};
 use std::thread;
 
 use crate::world::World;
@@ -13,10 +13,14 @@ pub fn run(w: i32, h: i32) {
         
     // Enter a new terminal screen, clear and hide cursor,
     // and print initial world state
-    execute!(stdout, terminal::EnterAlternateScreen).unwrap();
-    execute!(stdout, terminal::Clear(ClearType::All), cursor::Hide).unwrap();
-    execute!(stdout, cursor::MoveTo(0, 0), Print(&world)).unwrap();
-    execute!(stdout, Print("\nPress Esc to exit program")).unwrap();
+    execute!(stdout, 
+        terminal::EnterAlternateScreen, 
+        terminal::Clear(ClearType::All), 
+        cursor::Hide, 
+        cursor::MoveTo(0, 0), 
+        Print(&world), 
+        Print("\nPress Esc to exit program"))
+        .unwrap();
 
     thread::sleep(frame_delay);
 
@@ -32,13 +36,13 @@ pub fn run(w: i32, h: i32) {
         update_gol(&mut world);
 
         if prev_world != world {
-            queue!(stdout, cursor::MoveTo(0, 0)).unwrap();
-            queue!(stdout, Print(&world)).unwrap();
-            stdout.flush().unwrap();
+            execute!(stdout, cursor::MoveTo(0, 0), Print(&world)).unwrap();
         } else {
-            execute!(stdout, cursor::MoveTo(0, (world.height() + 2) as u16)).unwrap();
-            execute!(stdout, Clear(ClearType::CurrentLine)).unwrap();
-            execute!(stdout, Print("Press any key to exit program...")).unwrap();
+            execute!(stdout, 
+                cursor::MoveTo(0, (world.height() + 2) as u16), 
+                Clear(ClearType::CurrentLine), 
+                Print("Press any key to exit program..."))
+                .unwrap();
             read().unwrap();
             break;
         }
@@ -64,15 +68,15 @@ fn get_key() -> KeyCode {
 }
 
 fn update_gol(world: &mut World) {
-    for i in 0..world.width() as usize {
-        for j in 0..world.height() as usize {
+    for i in 0..world.height() as usize {
+        for j in 0..world.width() as usize {
             let neighbors = world.cell_neighbors_sol(i as i32, j as i32);
             world.world[i][j].up_alive(neighbors);
         }
     }
 
-    for i in 0..world.width() as usize {
-        for j in 0..world.height() as usize {
+    for i in 0..world.height() as usize {
+        for j in 0..world.width() as usize {
             if world.world[i][j].changing {
                 world.world[i][j].alive = !world.world[i][j].alive;
             }
