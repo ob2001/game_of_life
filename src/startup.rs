@@ -1,11 +1,12 @@
 use std::{io::{stdout, Write}, time::Duration};
-use crossterm::{execute, queue, terminal::{self, ClearType}, cursor, style::Print, event::{KeyCode, poll, read, self}};
+use crossterm::{execute, queue, terminal::{self, ClearType, Clear}, cursor, style::Print, event::{KeyCode, poll, read, self}};
 use std::thread;
 
 use crate::world::World;
 
 pub fn run(w: i32, h: i32) {
     let mut world = World::new_rand(w, h).unwrap();
+    let frame_delay = Duration::from_millis(50);
 
     // Bind io::stdout() output to variable for convenience
     let mut stdout = stdout();
@@ -17,7 +18,7 @@ pub fn run(w: i32, h: i32) {
     execute!(stdout, cursor::MoveTo(0, 0), Print(&world)).unwrap();
     execute!(stdout, Print("\nPress Esc to exit program")).unwrap();
 
-    thread::sleep(Duration::from_millis(250));
+    thread::sleep(frame_delay);
 
     loop {
         match get_key() {
@@ -33,15 +34,16 @@ pub fn run(w: i32, h: i32) {
         if prev_world != world {
             queue!(stdout, cursor::MoveTo(0, 0)).unwrap();
             queue!(stdout, Print(&world)).unwrap();
-            queue!(stdout, Print("\nPress Esc to exit program")).unwrap();
             stdout.flush().unwrap();
         } else {
-            execute!(stdout, Print("\nPress any key to exit program...")).unwrap();
+            execute!(stdout, cursor::MoveTo(0, (world.height() + 2) as u16)).unwrap();
+            execute!(stdout, Clear(ClearType::CurrentLine)).unwrap();
+            execute!(stdout, Print("Press any key to exit program...")).unwrap();
             read().unwrap();
             break;
         }
 
-        thread::sleep(Duration::from_millis(250));
+        thread::sleep(frame_delay);
     }
 
     // Make sure to return to original terminal screen
