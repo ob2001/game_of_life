@@ -26,9 +26,7 @@ impl fmt::Display for Cell {
 }
 
 impl PartialEq for Cell {
-    fn eq(&self, other: &Self) -> bool {
-        !(self.alive ^ other.alive)
-    }
+    fn eq(&self, other: &Self) -> bool { !(self.alive ^ other.alive) }
 }
 
 #[derive(Clone)]
