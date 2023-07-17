@@ -6,7 +6,7 @@ use std::thread;
 use crate::world::World;
 
 pub fn run(w: i32, h: i32) {
-    let mut world = World::new_rand(w, h);
+    let mut world = World::new_rand(w, h).unwrap();
 
     // Bind io::stdout() output to variable for convenience
     let mut stdout = stdout();
@@ -20,7 +20,7 @@ pub fn run(w: i32, h: i32) {
     thread::sleep(Duration::from_millis(250));
 
     loop {
-        match get_key().unwrap() {
+        match get_key() {
             // Allow program to quit if user presses ESC key
             KeyCode::Esc => break,
             _ => (),
@@ -48,16 +48,16 @@ pub fn run(w: i32, h: i32) {
     execute!(stdout, terminal::LeaveAlternateScreen).unwrap();
 }
 
-fn get_key() -> Result<KeyCode, ()> {
+fn get_key() -> KeyCode {
     // Look for events. If none, don't block
     if poll(Duration::from_millis(5)).unwrap() {
         // Match on event type
         match read().unwrap() {
-            event::Event::Key(k) => Ok(k.code),
-            _ => Ok(KeyCode::Null),
+            event::Event::Key(k) => k.code,
+            _ => KeyCode::Null,
         }
     } else {
-        Ok(KeyCode::Null)
+        KeyCode::Null
     }
 }
 

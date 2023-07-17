@@ -50,17 +50,26 @@ pub struct World {
 }
 
 impl World {
-    pub fn new_empty(w: i32, h: i32) -> World {
+    pub fn new_empty(w: i32, h: i32) -> Result<World, String> {
+        if w <= 0 || h <= 0 {
+            return Err(String::from("Invalid world dimensions"));
+        }
+
         let world_gen = (0..h).map(|x| (0..w).map(|y| Cell::new(false, x, y)).collect()).collect();
         let u_l = (0..w + 2).map(|_| "-").collect::<String>();
         
-        World{width: w, height: h, world: world_gen, upper_lower: u_l}
+        Ok(World{width: w, height: h, world: world_gen, upper_lower: u_l})
     }
-    pub fn new_rand(w: i32, h: i32) -> World {
+
+    pub fn new_rand(w: i32, h: i32) -> Result<World, String> {
+        if w <= 0 || h <= 0 {
+            return Err(String::from("Invalid world dimensions"));
+        }
+
         let mut world_gen = Vec::new();
         let mut rng = rand::thread_rng();
         let u_l = (0..w + 2).map(|_| "-").collect::<String>();
-
+        
         for i in 0..w {
             let mut row_gen = Vec::new();
             for j in 0..h {
@@ -68,16 +77,16 @@ impl World {
             }
             world_gen.push(row_gen);
         }
-
-        World{width: w, height: h, world: world_gen, upper_lower: u_l}
+        
+        Ok(World{width: w, height: h, world: world_gen, upper_lower: u_l})
     }
-
-    pub fn width(&self) -> i32 {self.width}
-    pub fn height(&self) -> i32 {self.height}
 
     pub fn from_file() -> World {
         todo!("To implement: import world from .txt file");
     }
+
+    pub fn width(&self) -> i32 {self.width}
+    pub fn height(&self) -> i32 {self.height}
 
     pub fn cell_neighbors_sol(&self, i: i32, j: i32) -> i32 {
         let mut ans = 0;
