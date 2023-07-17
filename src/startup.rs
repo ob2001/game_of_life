@@ -4,10 +4,17 @@ use std::thread;
 
 use crate::world::World;
 
-pub fn run(w: i32, h: i32) {
-    let mut world = World::new_rand(w, h).unwrap();
-    let frame_delay = Duration::from_millis(50);
+pub struct Cgol {
+    frame_delay: Duration,
+    world: World,
+}
 
+impl Cgol {
+    pub fn new(frame_delay: Duration, w: i32, h: i32) -> Cgol {
+        Cgol{frame_delay, world: World::new_rand(w, h).unwrap()}
+    }
+
+    pub fn run(&mut self) { 
     // Bind io::stdout() output to variable for convenience
     let mut stdout = stdout();
         
