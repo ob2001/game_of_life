@@ -21,8 +21,7 @@ impl Cell {
 
 impl fmt::Display for Cell {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.alive { write!(f, "O") } 
-        else { write!(f, " ") }
+        write!(f, "{}", match self.alive { true => "O", false => " "})
     }
 }
 
