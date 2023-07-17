@@ -1,78 +1,53 @@
-use std::fmt;
-use rand::Rng;
+use std::{io::{stdout, Write}, time::Duration};
+use crossterm::{execute, queue, terminal::{self, ClearType}, cursor, style::Print, event::{KeyCode, poll, read, self}};
+// use std::fs;
 
-#[derive(Clone)]
-pub struct Cell {
-    pub alive: bool,
-}
+use crate::world::World;
 
-impl Cell {
-    fn new(alive: bool) -> Cell {
-        Cell{alive}
-    }
-}
+pub fn run(world: World) {
+    let mut prev_world = World::new_empty(world.width, world.height);
 
-impl fmt::Display for Cell {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.alive {
-            write!(f, "X")
-        } else {
-            write!(f, " ")
-        }
-    }
-}
+    // Bind io::stdout() output to variable for convenience
+    let mut stdout = stdout();
+        
+    // Enter a new terminal screen, clear and hide cursor,
+    // and print initial world state
+    execute!(stdout, terminal::EnterAlternateScreen).unwrap();
+    execute!(stdout, terminal::Clear(ClearType::All), cursor::Hide).unwrap();
+    execute!(stdout, cursor::MoveTo(0, 0), Print(&world)).unwrap();
 
-impl PartialEq for Cell {
-    fn eq(&self, other: &Self) -> bool {
-        !(self.alive ^ other.alive)
-    }
-}
-
-#[derive(Clone)]
-pub struct World {
-    width: i32,
-    height: i32,
-    upper_lower: String,
-    pub world: Vec<Vec<Cell>>,
-}
-
-impl World {
-    pub fn new(w: i32, h: i32) -> World {
-        let mut world_gen = Vec::new();
-        let mut rng = rand::thread_rng();
-        let u_l = (0..w + 2).map(|_| "-").collect::<String>();
-
-        for _ in 0..w {
-            let mut row_gen = Vec::new();
-            for _ in 0..h {
-                row_gen.push(Cell::new(rng.gen_range(0..100) < 10));
-            }
-            world_gen.push(row_gen);
+    loop {
+        match get_key().unwrap() {
+            // Allow program to quit if user presses ESC key
+            KeyCode::Esc => break,
+            _ => (),
         }
 
-        World{width: w, height: h, world: world_gen, upper_lower: u_l}
-    }
-}
+        prev_world = world.clone();
 
-impl fmt::Display for World {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut out = String::from("");
-        out.push_str(&self.upper_lower);
-        out.push('\n');
-        for row in self.world.as_slice() {
-            out.push('|');
-            for item in row {
-                out.push_str(item.to_string().as_str());
-            }
-            out.push_str("|\n");
+        // update_gol(&mut world);
+
+        if prev_world != world {
+            queue!(stdout, terminal::Clear(ClearType::All)).unwrap();
+            queue!(stdout, cursor::MoveTo(0, 0)).unwrap();
+            queue!(stdout, Print(&world)).unwrap();
+            stdout.flush().unwrap();
         }
-        out.push_str(&self.upper_lower);
-        write!(f, "{}", out)
     }
+
+    // Make sure to return to original terminal screen
+    execute!(stdout, terminal::LeaveAlternateScreen).unwrap();
 }
 
-impl PartialEq for World {
-    fn eq(&self, other: &Self) -> bool {
-        self.world == other.world
+fn get_key() -> Result<KeyCode, ()> {
+    // Look for events. If none, don't block
+    if poll(Duration::from_millis(5)).unwrap() {
+        // Match on event type
+        match read().unwrap() {
+            event::Event::Key(k) => Ok(k.code),
+            _ => Ok(KeyCode::Null),
+        }
+    } else {
+        Ok(KeyCode::Null)
     }
 }
