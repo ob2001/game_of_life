@@ -1,18 +1,27 @@
-use std::fmt;
+use std::{fmt, cmp::{min, max}};
 use rand::Rng;
 
 #[derive(Clone)]
 pub struct Cell {
     pub alive: bool,
+    pub changing: bool,
+    pub x: i32,
+    pub y: i32,
 }
 
 impl Cell {
-    fn new(alive: bool) -> Cell {
-        Cell{alive}
+    fn new(alive: bool, x: i32, y: i32) -> Cell {
+        Cell{alive, changing: false, x, y}
     }
 
-    fn up_alive(&self, neighbors: [Cell; 8]) {
-        todo!("To implement: update cell life value");
+    pub fn up_alive(&mut self, neighbors: i32) {
+        if self.alive && (neighbors < 2 || neighbors > 3) {
+            self.changing = true;
+        } else if self.alive && (neighbors == 2 || neighbors == 3) {
+            self.changing = false;
+        } else if !self.alive && neighbors == 3 {
+            self.changing = true;
+        }
     }
 }
 
@@ -34,15 +43,15 @@ impl PartialEq for Cell {
 
 #[derive(Clone)]
 pub struct World {
-    pub width: i32,
-    pub height: i32,
+    width: i32,
+    height: i32,
     upper_lower: String,
     pub world: Vec<Vec<Cell>>,
 }
 
 impl World {
     pub fn new_empty(w: i32, h: i32) -> World {
-        let world_gen = (0..h).map(|_| (0..w).map(|_| Cell::new(false)).collect()).collect();
+        let world_gen = (0..h).map(|x| (0..w).map(|y| Cell::new(false, x, y)).collect()).collect();
         let u_l = (0..w + 2).map(|_| "-").collect::<String>();
         
         World{width: w, height: h, world: world_gen, upper_lower: u_l}
@@ -52,10 +61,10 @@ impl World {
         let mut rng = rand::thread_rng();
         let u_l = (0..w + 2).map(|_| "-").collect::<String>();
 
-        for _ in 0..w {
+        for i in 0..w {
             let mut row_gen = Vec::new();
-            for _ in 0..h {
-                row_gen.push(Cell::new(rng.gen_range(0..100) < 10));
+            for j in 0..h {
+                row_gen.push(Cell::new(rng.gen_range(0..100) < 15, i, j));
             }
             world_gen.push(row_gen);
         }
@@ -63,8 +72,35 @@ impl World {
         World{width: w, height: h, world: world_gen, upper_lower: u_l}
     }
 
+    pub fn width(&self) -> i32 {self.width}
+    pub fn height(&self) -> i32 {self.height}
+
     pub fn from_file() -> World {
         todo!("To implement: import world from .txt file");
+    }
+
+    pub fn cell_neighbors_sol(&self, i: i32, j: i32) -> i32 {
+        let mut ans = 0;
+        for i in max(i - 1, 0)..min(i + 1, self.width) {
+            for j in max(j - 1, 0)..min(j + 1, self.height) {
+                if self.world[i as usize][j as usize].alive{
+                    ans += 1;
+                }
+            }
+        }
+        ans
+    }
+
+    pub fn cell_neighbors_per(&self, x: i32, y: i32) -> i32 {
+        let mut ans = 0;
+        for i in max(x - 1, 0)..min(x + 1, self.width) {
+            for j in max(y - 1, 0)..min(y + 1, self.height) {
+                if self.world[i as usize][j as usize].alive{
+                    ans += 1;
+                }
+            }
+        }
+        ans
     }
 }
 
