@@ -1,7 +1,6 @@
 use std::{io::{stdout, Write}, time::Duration};
 use crossterm::{execute, queue, terminal::{self, ClearType}, cursor, style::Print, event::{KeyCode, poll, read, self}};
 use std::thread;
-// use std::fs;
 
 use crate::world::World;
 
@@ -16,6 +15,7 @@ pub fn run(w: i32, h: i32) {
     execute!(stdout, terminal::EnterAlternateScreen).unwrap();
     execute!(stdout, terminal::Clear(ClearType::All), cursor::Hide).unwrap();
     execute!(stdout, cursor::MoveTo(0, 0), Print(&world)).unwrap();
+    execute!(stdout, Print("\nPress Esc to exit program")).unwrap();
 
     thread::sleep(Duration::from_millis(250));
 
@@ -31,9 +31,9 @@ pub fn run(w: i32, h: i32) {
         update_gol(&mut world);
 
         if prev_world != world {
-            queue!(stdout, terminal::Clear(ClearType::All)).unwrap();
             queue!(stdout, cursor::MoveTo(0, 0)).unwrap();
             queue!(stdout, Print(&world)).unwrap();
+            queue!(stdout, Print("\nPress Esc to exit program")).unwrap();
             stdout.flush().unwrap();
         } else {
             execute!(stdout, Print("\nPress any key to exit program...")).unwrap();
