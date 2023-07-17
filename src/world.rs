@@ -43,30 +43,23 @@ impl World {
             return Err(String::from("Invalid world dimensions"));
         }
 
-        let world_gen = (0..w).map(|_| (0..h).map(|_| Cell::new(false)).collect()).collect();
+        let world_gen = (0..h).map(|_| (0..w).map(|_| Cell::new(false)).collect()).collect();
         let u_l = (0..w + 2).map(|_| "-").collect::<String>();
         
         Ok(World{width: w, height: h, world: world_gen, upper_lower: u_l})
     }
 
     pub fn new_rand(w: i32, h: i32) -> Result<World, String> {
-        if w <= 0 || h <= 0 {
-            return Err(String::from("Invalid world dimensions"));
-        }
-
-        let mut world_gen = Vec::new();
+        let mut world = World::new_empty(w, h)?;
         let mut rng = rand::thread_rng();
-        let u_l = (0..w + 2).map(|_| "-").collect::<String>();
         
-        for _ in 0..h {
-            let mut row_gen = Vec::new();
-            for _ in 0..w {
-                row_gen.push(Cell::new(rng.gen_range(0..100) < 15));
+        for row in &mut world.world {
+            for cell in row {
+                cell.alive = rng.gen_range(0..100) < 15;
             }
-            world_gen.push(row_gen);
         }
         
-        Ok(World{width: w, height: h, world: world_gen, upper_lower: u_l})
+        Ok(world)
     }
 
     pub fn from_file(_fname: &str) -> Result<World, String> {
