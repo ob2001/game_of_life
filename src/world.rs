@@ -14,20 +14,15 @@ impl Cell {
     }
 
     pub fn up_alive(&mut self, neighbors: i32) {
-        let surv = [2, 3];
-        let born = [3];
+        let (surv, born) = ([2, 3], [3]);
+        let (survives, is_born) = (surv.contains(&neighbors), born.contains(&neighbors));
 
-        if self.alive && (surv.contains(&neighbors)) {
-            self.changing = false;
-        } else if self.alive {
-            self.changing = true;
-        }
-        
-        if !self.alive && (born.contains(&neighbors)) {
-            self.changing = true;
-        } else if !self.alive {
-            self.changing = false;
-        }
+        self.alive = match (self.alive, survives, is_born) {
+            (true, true, _) => true,
+            (true, false, _) => false,
+            (false, _, true) => true,
+            (false, _, false) => false,
+        };
     }
 }
 
