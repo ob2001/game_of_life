@@ -38,15 +38,15 @@ pub struct World {
 }
 
 impl World {
-    pub fn new_empty(w: i32, h: i32) -> Result<World, String> {
-        if w <= 0 || h <= 0 {
+    pub fn new_empty(width: i32, height: i32) -> Result<World, String> {
+        if width <= 0 || height <= 0 {
             return Err(String::from("Invalid world dimensions"));
         }
 
-        let world_gen = (0..h).map(|_| (0..w).map(|_| Cell::new(false)).collect()).collect();
-        let u_l = (0..w + 2).map(|_| "-").collect::<String>();
-        
-        Ok(World{width: w, height: h, world: world_gen, upper_lower: u_l})
+        Ok(World { width, height, 
+            world: vec![vec![Cell::new(false); width as usize]; height as usize], 
+            upper_lower: vec!["-"; width as usize + 2].into_iter().collect()
+        })
     }
 
     pub fn new_rand(w: i32, h: i32) -> Result<World, String> {
