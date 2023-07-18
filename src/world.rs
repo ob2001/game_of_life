@@ -18,7 +18,7 @@ impl World {
         
         Ok(World { width, height, 
             world: vec![vec![false; width as usize]; height as usize], 
-            upper_lower: vec!["-"; width as usize + 2].into_iter().collect()
+            upper_lower: vec!["\u{2500}"; width as usize].into_iter().collect()
         })
     }
 
@@ -76,15 +76,15 @@ impl World {
 
 impl fmt::Display for World {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}\n", &self.upper_lower)?;
+        write!(f, "\u{250c}{}\u{2510}\n", &self.upper_lower)?;
         for row in self.world.as_slice() {
-            write!(f, "|")?;
+            write!(f, "\u{2502}")?;
             for item in row {
-                write!(f, "{}", match item { true => "@", false => " " })?;
+                write!(f, "{}", match item { true => "O", false => " " })?;
             }
-            write!(f, "|\n")?;
+            write!(f, "\u{2502}\n")?;
         }
-        write!(f, "{}", &self.upper_lower)
+        write!(f, "\u{2514}{}\u{2518}", &self.upper_lower)
     }
 }
 
