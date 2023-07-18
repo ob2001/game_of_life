@@ -1,4 +1,4 @@
-use std::{fmt, cmp::{min, max}};
+use std::{fmt::{self, Display, Formatter}, cmp::{min, max}};
 use rand::Rng;
 // use std::fs;
 
@@ -74,8 +74,8 @@ impl World {
     // }
 }
 
-impl fmt::Display for World {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for World {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "\u{250c}{}\u{2510}\n", &self.upper_lower)?;
         for row in self.world.as_slice() {
             write!(f, "\u{2502}")?;

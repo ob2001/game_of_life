@@ -1,6 +1,5 @@
-use std::{io::stdout, time::Duration};
+use std::{io::stdout, time::Duration, thread};
 use crossterm::{execute, terminal::{self, ClearType, Clear}, cursor, style::Print, event::{KeyCode, poll, read, self}};
-use std::thread;
 
 use crate::world::{World, up_alive};
 
