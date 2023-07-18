@@ -103,18 +103,15 @@ impl World {
 
 impl fmt::Display for World {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut out = String::from("");
-        out.push_str(&self.upper_lower);
-        out.push('\n');
+        write!(f, "{}\n", &self.upper_lower)?;
         for row in self.world.as_slice() {
-            out.push('|');
+            write!(f, "|")?;
             for item in row {
-                out.push_str(item.to_string().as_str());
+                write!(f, "{}", item)?;
             }
-            out.push_str("|\n");
+            write!(f, "|\n")?;
         }
-        out.push_str(&self.upper_lower);
-        write!(f, "{}", out)
+        write!(f, "{}", &self.upper_lower)
     }
 }
 
