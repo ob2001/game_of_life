@@ -19,7 +19,7 @@ impl Cgol {
         let mut stdout = stdout();
             
         // Enter a new terminal screen, clear and hide cursor,
-        // and print initial world state
+        // print initial world state
         execute!(stdout, 
             terminal::EnterAlternateScreen, 
             terminal::Clear(ClearType::All), 
@@ -40,9 +40,8 @@ impl Cgol {
             }
     
             let prev_world = self.world.clone();
-    
-            self.world = self.update();
-    
+            self.update(&prev_world).unwrap();
+        
             if prev_world.world != self.world.world {
                 execute!(stdout, cursor::MoveTo(0, 0), Print(&self.world)).unwrap();
             } else {
@@ -57,24 +56,27 @@ impl Cgol {
     
             thread::sleep(self.frame_delay);
         }
-    
+
+        
         // For debugging
         // thread::sleep(Duration::from_secs(2));
-
+        
         // Make sure to return to original terminal screen
         execute!(stdout, terminal::LeaveAlternateScreen).unwrap();
     }
 
-    fn update(&self) -> World {
-        let mut temp = self.world.clone();
-        
-        for i in 0..temp.height() {
-            for j in 0..temp.width() {
-                temp.world[i as usize][j as usize] = up_alive(temp.world[i as usize][j as usize], self.world.cell_neighbors_sol(i, j));
+    fn update(&mut self, prev_world: &World) -> Result<(), String> {  
+        if self.world.width() != prev_world.width() || self.world.height() != prev_world.height() {
+            return Err(String::from("Error comparing current world state with previous world state."));
+        }
+
+        for i in 0..self.world.height() as usize {
+            for j in 0..self.world.width() as usize {
+                self.world.world[i][j] = up_alive(prev_world.world[i][j], prev_world.cell_neighbors_sol(i as i32, j as i32));
             }
         }
 
-        temp
+        Ok(())
     }
 }
 
