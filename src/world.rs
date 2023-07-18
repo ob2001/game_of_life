@@ -88,12 +88,6 @@ impl fmt::Display for World {
     }
 }
 
-impl PartialEq for World {
-    fn eq(&self, other: &Self) -> bool {
-        self.world == other.world
-    }
-}
-
 pub fn up_alive(alive: bool, neighbors: i32) -> bool {
     let (surv, born) = ([2, 3], [3]);
     alive && surv.contains(&neighbors) || !alive && born.contains(&neighbors)

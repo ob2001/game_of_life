@@ -43,7 +43,7 @@ impl Cgol {
     
             self.world = self.update();
     
-            if prev_world != self.world {
+            if prev_world.world != self.world.world {
                 execute!(stdout, cursor::MoveTo(0, 0), Print(&self.world)).unwrap();
             } else {
                 execute!(stdout, 
