@@ -1,5 +1,5 @@
 use std::{io::stdout, time::Duration, thread};
-use crossterm::{execute, terminal::{self, ClearType, Clear}, cursor, style::Print, event::{KeyCode, poll, read, self}};
+use crossterm::{execute, terminal::{self, ClearType, Clear}, cursor, style::Print, event::{KeyCode, poll, read, self, KeyEventKind}};
 
 use crate::world::{World, up_alive};
 
@@ -31,13 +31,29 @@ impl Cgol {
         thread::sleep(self.frame_delay);
     
         loop {
+            thread::sleep(self.frame_delay);
+
+            // Allow user input while program is running
             match get_key() {
-                // Allow program to quit if user presses ESC key
                 KeyCode::Esc => break,
-                KeyCode::Char(' ') => (),
+                KeyCode::Left => {
+                    if self.frame_delay.as_millis() <= 200 {
+                        self.frame_delay = Duration::from_millis(self.frame_delay.as_millis() as u64 + 5);
+                        continue;
+                    }
+                },
+                KeyCode::Right => {
+                    if self.frame_delay.as_millis() >= 20 {
+                        self.frame_delay = Duration::from_millis(self.frame_delay.as_millis() as u64 - 5);
+                        continue;
+                    }
+                },
+                KeyCode::Char(' ') => {
+                    while get_key() != KeyCode::Char(' ') {}
+                },
                 _ => (),
             }
-    
+            
             let prev_world = self.world.clone();
             self.update(&prev_world).unwrap();
         
@@ -52,8 +68,6 @@ impl Cgol {
                 read().unwrap();
                 break;
             }
-    
-            thread::sleep(self.frame_delay);
         }
 
         
@@ -81,12 +95,18 @@ impl Cgol {
 
 fn get_key() -> KeyCode {
     // Look for events. If none, don't block
-    if poll(Duration::from_millis(5)).unwrap() {
+    if poll(Duration::from_millis(1)).unwrap() {
         // Match on event type
         match read().unwrap() {
-            event::Event::Key(k) => k.code,
+            event::Event::Key(k) => {
+                if k.kind == KeyEventKind::Press {
+                    k.code
+                } else {
+                    KeyCode::Null
+                }
+            },
             _ => KeyCode::Null,
-        }
+        }   
     } else {
         KeyCode::Null
     }
