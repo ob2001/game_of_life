@@ -3,94 +3,45 @@ use rand::Rng;
 // use std::fs;
 
 #[derive(Clone)]
-pub struct Cell {
-    pub alive: bool,
-    pub changing: bool,
-}
-
-impl Cell {
-    fn new(alive: bool) -> Cell {
-        Cell{alive, changing: false}
-    }
-
-    pub fn up_alive(&mut self, neighbors: i32) {
-        let surv = [2, 3];
-        let born = [3];
-
-        if self.alive && (surv.contains(&neighbors)) {
-            self.changing = false;
-        } else if self.alive {
-            self.changing = true;
-        }
-        
-        if !self.alive && (born.contains(&neighbors)) {
-            self.changing = true;
-        } else if !self.alive {
-            self.changing = false;
-        }
-    }
-}
-
-impl fmt::Display for Cell {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.alive { write!(f, "O") } 
-        else { write!(f, " ") }
-    }
-}
-
-impl PartialEq for Cell {
-    fn eq(&self, other: &Self) -> bool {
-        !(self.alive ^ other.alive)
-    }
-}
-
-#[derive(Clone)]
 pub struct World {
     width: i32,
     height: i32,
     upper_lower: String,
-    pub world: Vec<Vec<Cell>>,
+    pub world: Vec<Vec<bool>>,
 }
 
 impl World {
-    pub fn new_empty(w: i32, h: i32) -> Result<World, String> {
-        if w <= 0 || h <= 0 {
+    pub fn new_empty(width: i32, height: i32) -> Result<World, String> {
+        if width <= 0 || height <= 0 {
             return Err(String::from("Invalid world dimensions"));
         }
-
-        let world_gen = (0..w).map(|_| (0..h).map(|_| Cell::new(false)).collect()).collect();
-        let u_l = (0..w + 2).map(|_| "-").collect::<String>();
         
-        Ok(World{width: w, height: h, world: world_gen, upper_lower: u_l})
+        Ok(World { width, height, 
+            world: vec![vec![false; width as usize]; height as usize], 
+            upper_lower: vec!["\u{2500}"; width as usize].into_iter().collect()
+        })
     }
 
     pub fn new_rand(w: i32, h: i32) -> Result<World, String> {
-        if w <= 0 || h <= 0 {
-            return Err(String::from("Invalid world dimensions"));
-        }
-
-        let mut world_gen = Vec::new();
+        let mut world = World::new_empty(w, h)?;
         let mut rng = rand::thread_rng();
-        let u_l = (0..w + 2).map(|_| "-").collect::<String>();
         
-        for _ in 0..h {
-            let mut row_gen = Vec::new();
-            for _ in 0..w {
-                row_gen.push(Cell::new(rng.gen_range(0..100) < 15));
+        for row in &mut world.world {
+            for cell in row {
+                *cell = rng.gen_range(0..100) < 15;
             }
-            world_gen.push(row_gen);
         }
         
-        Ok(World{width: w, height: h, world: world_gen, upper_lower: u_l})
+        Ok(world)
     }
 
-    pub fn from_file(_fname: &str) -> Result<World, String> {
-        todo!("To implement: import world from .txt file");
-    }
+    // pub fn from_file(_fname: &str) -> Result<World, String> {
+    //     todo!("To implement: import world from .txt file");
+    // }
 
-    pub fn to_file(_fname: &str) -> Result<(), String> {
-        todo!("To implement: export world to .txt file");
-    }
+    // pub fn to_file(_fname: &str) -> Result<(), String> {
+    //     todo!("To implement: export world to .txt file");
+    // }
 
     pub fn width(&self) -> i32 {self.width}
     pub fn height(&self) -> i32 {self.height}
@@ -99,7 +50,7 @@ impl World {
         let mut ans = 0;
         for i in max(x - 1, 0)..min(x + 2, self.height) {
             for j in max(y - 1, 0)..min(y + 2, self.width) {
-                if (i, j) != (x, y) && self.world[i as usize][j as usize].alive{
+                if (i, j) != (x, y) && self.world[i as usize][j as usize] {
                     ans += 1;
                 }
             }
@@ -125,23 +76,19 @@ impl World {
 
 impl fmt::Display for World {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut out = String::from("");
-        out.push_str(&self.upper_lower);
-        out.push('\n');
+        write!(f, "\u{250c}{}\u{2510}\n", &self.upper_lower)?;
         for row in self.world.as_slice() {
-            out.push('|');
+            write!(f, "\u{2502}")?;
             for item in row {
-                out.push_str(item.to_string().as_str());
+                write!(f, "{}", match item { true => "O", false => " " })?;
             }
-            out.push_str("|\n");
+            write!(f, "\u{2502}\n")?;
         }
-        out.push_str(&self.upper_lower);
-        write!(f, "{}", out)
+        write!(f, "\u{2514}{}\u{2518}", &self.upper_lower)
     }
 }
 
-impl PartialEq for World {
-    fn eq(&self, other: &Self) -> bool {
-        self.world == other.world
-    }
+pub fn up_alive(alive: bool, neighbors: i32) -> bool {
+    let (surv, born) = ([2, 3], [3]);
+    alive && surv.contains(&neighbors) || !alive && born.contains(&neighbors)
 }
