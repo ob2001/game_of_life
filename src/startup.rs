@@ -2,7 +2,7 @@ use std::{io::stdout, time::Duration};
 use crossterm::{execute, terminal::{self, ClearType, Clear}, cursor, style::Print, event::{KeyCode, poll, read, self}};
 use std::thread;
 
-use crate::world::World;
+use crate::world::{World, up_alive};
 
 pub struct Cgol {
     frame_delay: Duration,
@@ -70,7 +70,7 @@ impl Cgol {
         
         for i in 0..temp.height() {
             for j in 0..temp.width() {
-                temp.world[i as usize][j as usize].up_alive(self.world.cell_neighbors_sol(i, j));
+                temp.world[i as usize][j as usize] = up_alive(temp.world[i as usize][j as usize], self.world.cell_neighbors_sol(i, j));
             }
         }
 
