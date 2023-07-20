@@ -35,9 +35,9 @@ impl World {
         Ok(world)
     }
 
-    // pub fn from_file(_fname: &str) -> Result<World, String> {
-    //     todo!("To implement: import world from .txt file");
-    // }
+    pub fn from_file(fname: String) -> Result<World, String> {
+        todo!("To implement: import world from .txt file");
+    }
 
     // pub fn to_file(_fname: &str) -> Result<(), String> {
     //     todo!("To implement: export world to .txt file");

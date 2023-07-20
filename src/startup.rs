@@ -1,6 +1,5 @@
 use std::{io::stdout, time::Duration, thread};
 use crossterm::{execute, terminal::{self, ClearType, Clear}, cursor, style::Print, event::{KeyCode, poll, read, self, KeyEventKind}};
-
 use crate::world::{World, up_alive};
 
 pub struct Cgol {
@@ -9,8 +8,12 @@ pub struct Cgol {
 }
 
 impl Cgol {
-    pub fn new(frame_delay: Duration, w: i32, h: i32) -> Cgol {
-        Cgol{frame_delay, world: World::new_rand(w, h).unwrap()}
+    pub fn new(frame_delay: Duration, w: i32, h: i32, fname: String) -> Cgol {
+        if fname == "" {
+            Cgol{frame_delay, world: World::new_rand(w, h).unwrap()}
+        } else {
+            Cgol{frame_delay, world: World::from_file(fname).unwrap()}
+        }
     }
 
     pub fn run(&mut self) { 
