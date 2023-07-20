@@ -16,6 +16,7 @@ impl Cgol {
     pub fn run(&mut self) { 
         // Bind io::stdout() output to variable for convenience
         let mut stdout = stdout();
+        let mut flag = false;
             
         // Enter a new terminal screen, clear and hide cursor,
         // print initial world state
@@ -25,40 +26,57 @@ impl Cgol {
             cursor::Hide, 
             cursor::MoveTo(0, 0), 
             Print(&self.world), 
-            Print("\nPress Esc to exit program"))
+            Print("\nPress Esc to exit program\nPress Space to pause program"))
             .unwrap();
     
         thread::sleep(self.frame_delay);
     
-        loop {
+        'outer: loop {
             thread::sleep(self.frame_delay);
 
             // Allow user input while program is running
             match get_key() {
                 KeyCode::Esc => break,
+                KeyCode::Char(' ') => {
+                    let mut key = get_key();
+                    while key != KeyCode::Char(' ') {
+                        key = get_key();
+                        if key == KeyCode::Esc {
+                            break 'outer;
+                        }
+                    }
+                    let _ = get_key();
+                },
                 KeyCode::Left => {
-                    if self.frame_delay.as_millis() <= 200 {
+                    if !flag && self.frame_delay.as_millis() < 150 {
+                        flag = true;
                         self.frame_delay = Duration::from_millis(self.frame_delay.as_millis() as u64 + 5);
-                        continue;
+                        let _ = get_key();
                     }
                 },
                 KeyCode::Right => {
-                    if self.frame_delay.as_millis() >= 20 {
+                    if !flag && self.frame_delay.as_millis() >= 10 {
+                        flag = true;
                         self.frame_delay = Duration::from_millis(self.frame_delay.as_millis() as u64 - 5);
-                        continue;
+                        let _ = get_key();
                     }
                 },
-                KeyCode::Char(' ') => {
-                    while get_key() != KeyCode::Char(' ') {}
+                _ => {
+                    flag = false;
+                    let _ = get_key();
                 },
-                _ => (),
             }
             
             let prev_world = self.world.clone();
             self.update(&prev_world).unwrap();
         
             if prev_world.world != self.world.world {
-                execute!(stdout, cursor::MoveTo(0, 0), Print(&self.world)).unwrap();
+                execute!(stdout, 
+                    cursor::MoveTo(0, 0),
+                    Print(&self.world),
+                    cursor::MoveToNextLine(3),
+                    terminal::Clear(ClearType::CurrentLine),
+                    Print(format!("Current frame delay: {} ms", self.frame_delay.as_millis()))).unwrap();
             } else {
                 execute!(stdout, 
                     cursor::MoveTo(0, (self.world.height() + 2) as u16), 
@@ -70,7 +88,6 @@ impl Cgol {
             }
         }
 
-        
         // For debugging
         // thread::sleep(Duration::from_secs(2));
         
@@ -99,13 +116,13 @@ fn get_key() -> KeyCode {
         // Match on event type
         match read().unwrap() {
             event::Event::Key(k) => {
-                if k.kind == KeyEventKind::Press {
+                if k.kind == KeyEventKind::Press && k.kind != KeyEventKind::Release {
                     k.code
                 } else {
                     KeyCode::Null
                 }
             },
-            _ => KeyCode::Null,
+            _ => KeyCode::Null
         }   
     } else {
         KeyCode::Null
