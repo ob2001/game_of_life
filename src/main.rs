@@ -7,12 +7,19 @@ fn main() {
 
     
     if args.contains(&String::from("dims")) {
-        let idx = args.iter().position(|r| r == "dims").unwrap();
-        (w, h) = (args[idx + 1].parse().unwrap(), args[idx + 2].parse().unwrap());
+        let idx = args
+            .iter()
+            .position(|r| r == "dims")
+            .unwrap();
+        (w, h) = (args[idx + 1].parse().unwrap(),
+            args[idx + 2].parse().unwrap());
     }
 
     if args.contains(&String::from("delay")) {
-        let idx = args.iter().position(|r| r == "delay").unwrap();
+        let idx = args
+            .iter()
+            .position(|r| r == "delay")
+            .unwrap();
         frame_delay = Duration::from_millis(args[idx + 1].parse().unwrap());
     }
     

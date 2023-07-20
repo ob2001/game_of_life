@@ -61,6 +61,7 @@ impl World {
     /*
         TODO: Come back to implement periodic boundaries
      */
+    
     // pub fn cell_neighbors_per(&self, x: i32, y: i32) -> i32 {
     //     let mut ans = 0;
     //     for i in max(x - 1, 0)..min(x + 1, self.height) {
